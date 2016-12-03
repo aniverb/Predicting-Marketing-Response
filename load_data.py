@@ -57,6 +57,8 @@ if __name__ == '__main__':
         x = get_type(df[col])
 
     df,drop = open_data('/Data/Data Mining/train.csv')
+    dfn = df._get_numeric_data()
+    print len(dfn)
     print "%d cols dropped" % len(drop)
 
 
