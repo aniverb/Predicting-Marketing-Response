@@ -16,7 +16,7 @@ def main():
         print k
         data = train[col_names[k]]
         if type(data[0]) == int or type(data[0]) == np.float64 or type(data[0]) == float or type(data[0]) == long:
-            replacement = np.nanmean(data) # If feature is numerical, replace with mean of all instances
+            replacement = np.nanmedian(data) # If feature is numerical, replace with mean of all instances
         elif type(data[0]) == str:
             replacement = max(set(list(data)), key=list(data).count) # If feature is categorical, replace with mode of all instances
         for m in range(len(data)):
@@ -24,7 +24,7 @@ def main():
                 train.set_value(m, col_names[k], replacement)
     for k in range(len(col_names)):
         data = train[col_names[k]]
-        if type(data[0]) == list:
+        if data[0] == '[]':
             del train[col_names[k]] # Delete feature where all instances are empty lists
     train.to_csv('train_a_cleaned.csv')
 main()
