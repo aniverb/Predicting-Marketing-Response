@@ -16,7 +16,7 @@ def main():
         print k
         data = train[col_names[k]]
         if type(data[0]) == int or type(data[0]) == np.float64 or type(data[0]) == float or type(data[0]) == long:
-            replacement = np.nanmedian(data) # If feature is numerical, replace with mean of all instances
+            replacement = np.nanmedian(data) # If feature is numerical, replace with median of all instances
         elif type(data[0]) == str:
             replacement = max(set(list(data)), key=list(data).count) # If feature is categorical, replace with mode of all instances
         for m in range(len(data)):
