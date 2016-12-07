@@ -1,30 +1,52 @@
 import pandas as pd
 import numpy as np
-import os
+import time, sys
 
-def main():
-    train = pd.read_csv(os.path.expanduser('~/Downloads/train_split/train_a.csv'))
-    rows = train.shape[0]
-    find_nans = pd.isnull(train).sum() > 0.5*rows # Find features where more than 50% are NAs to get rid of
-    keep_cols = []
-    for k in list(find_nans.index):
-        if find_nans[k] == False:
-            keep_cols.append(k)
-    train = train[keep_cols] # Keep features that have less than 50% NAs
-    col_names = list(train.columns.values)
-    for k in range(len(col_names)):
-        print k
-        data = train[col_names[k]]
-        if type(data[0]) == int or type(data[0]) == np.float64 or type(data[0]) == float or type(data[0]) == long:
-            replacement = np.nanmedian(data) # If feature is numerical, replace with median of all instances
-        elif type(data[0]) == str:
-            replacement = max(set(list(data)), key=list(data).count) # If feature is categorical, replace with mode of all instances
-        for m in range(len(data)):
-            if pd.isnull(data[m]):
-                train.set_value(m, col_names[k], replacement)
-    for k in range(len(col_names)):
-        data = train[col_names[k]]
-        if data[0] == '[]':
-            del train[col_names[k]] # Delete feature where all instances are empty lists
-    train.to_csv('train_a_cleaned.csv')
-main()
+NULL_SYMBOL = ['NA', 'na', 'NaN', 'nan', 'NULL', 'null', 'Nan', '', '[]', '-1']
+
+
+def open_data(filename):
+    with open(filename, 'r') as f:
+        df = pd.read_csv(filename, header=0, index_col=False, true_values=['true'], na_values=NULL_SYMBOL, false_values=['false'])
+        drop = []
+        for col in df:
+            # Drop cols with high NA usage
+            if 100 * float(df[col].count()) / len(df[col]) < 50:
+                df.drop(col, 1, inplace=True)
+                drop.append(col)
+        
+        keep = []
+        for col in df:
+            if col == 'ID' or col == 'target' or df[col].dtype == bool:
+                pass
+            elif np.issubdtype(df[col].dtype, np.number):
+                # Fill NA's with median for all numeric types
+                df[col].fillna(df[col].median(), inplace=True)
+            elif df[col].dtype == str:
+                df[col].fillna(max(set(list(df[col])), key=list(df[col]).count), inplace=True)
+
+            else:
+                df.drop(col, 1, inplace=True)   
+
+        keep.append(df)
+        df = pd.concat(keep, axis=1)
+
+        return df, drop
+
+
+    
+
+if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        print "No data file provided."
+    out = sys.argv[1] + '.clean'
+    if len(sys.argv) > 2:
+        out = sys.argv[2]
+
+    df, drop  = open_data(sys.argv[1])
+    print "\n Writing to: %s" % out
+    df.to_csv(out, index=False)
+
+
+
+
