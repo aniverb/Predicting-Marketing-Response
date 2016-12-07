@@ -26,9 +26,12 @@ def open_data(filename):
                 df[col].fillna(max(set(list(df[col])), key=list(df[col]).count), inplace=True)
                 if len(df[col].value_counts(sort=False)) > 25:
                     df.drop(col, 1, inplace=True)
+                    continue
 
             else:
                 df.drop(col, 1, inplace=True)
+                continue
+
             if len(df[col].value_counts(sort=False)) == 1:
                 df.drop(col, 1, inplace=True)
 
