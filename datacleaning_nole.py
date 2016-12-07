@@ -24,12 +24,18 @@ def open_data(filename):
                 df[col].fillna(df[col].median(), inplace=True)
             elif df[col].dtype == str:
                 df[col].fillna(max(set(list(df[col])), key=list(df[col]).count), inplace=True)
+                if len(df[col].value_counts(sort=False)) > 25:
+                    df.drop(col, 1, inplace=True)
 
             else:
-                df.drop(col, 1, inplace=True)   
+                df.drop(col, 1, inplace=True)
+            if len(df[col].value_counts(sort=False)) == 1:
+                df.drop(col, 1, inplace=True)
+
 
         keep.append(df)
         df = pd.concat(keep, axis=1)
+
 
         return df, drop
 
