@@ -4,6 +4,7 @@ from numba import *
 from scipy.stats import chi2_contingency
 from scipy.stats import mannwhitneyu
 pd.set_option('display.max_columns', None)
+import cProfile
 
 #Read cleaned data, remove ID column and target column
 train = pd.read_csv('C:\\Users\\aniverb\\Documents\\Grad_School\\JHU\\436 - Data Mining\\Project\\Springleaf data\\clean\\train_a_cleaned.csv')
@@ -33,7 +34,7 @@ def getCat(data):
     count=0
     c=data.columns
     for i in range(cols):
-        if (data[c[i]].nunique())<=25:
+        if ((data[c[i]].nunique())<=25) & ((data[c[i]].nunique())>1):
             cat_list[0,count]=i
             count+=1
     return cat_list[0,0:count-1] #b/c target is last col
@@ -44,12 +45,14 @@ cat_cols_ix=cat_cols_ix.tolist() #indicies
 target = train.iloc[:,train.shape[1]-1] #Create separate "target" vector
 #catcols = train.ix[:, train.apply(lambda x: x.nunique()) <= 25] #too slow
 catcols = train[cat_cols_ix]
+catcols.shape #(72615, 787)
 
 catcolsNames=catcols.columns.values
 trainNames=train.columns.values
 trainWilc=train
 nonCate=[i for i in trainNames if i not in catcolsNames]
 trainWilc=trainWilc[nonCate]
+trainWilc.shape #(72615, 1108)
 
 @jit("void(f4[:, :])")
 def getNum(data):
@@ -58,7 +61,7 @@ def getNum(data):
     count=0
     c=data.columns
     for i in range(cols):
-        if (data[c[i]].dtype) == np.int64 or (data[c[i]].dtype)  == np.float64:
+        if ((data[c[i]].dtype) == np.int64) | ((data[c[i]].dtype)  == np.float64) & ('' not in list(data[c[i]])) & ((data[c[i]].nunique())>1):
             cat_list[0,count]=i
             count+=1
     return cat_list[0,0:count]
@@ -66,6 +69,8 @@ def getNum(data):
 trainWilc_ix=getNum(trainWilc)
 trainWilc_ix=trainWilc_ix.tolist()
 trainWilc=trainWilc[trainWilc_ix]
+trainWilc.shape #(72615, 1060)
+
 
 @jit 
 def mw_test(data, i):
@@ -73,26 +78,29 @@ def mw_test(data, i):
     group1 = (data.ix[group1]).ix[:, i]
     group2 = data.target == 1
     group2 = (data.ix[group2]).ix[:, i]
-    u, p_value = mannwhitneyu(group1, group2)
-	return p_value
+    p_value = mannwhitneyu(group1, group2)[1]
+    return p_value
 
-	#mw_test(trainWilc, 0)	test
+cProfile.run('mw_test(trainWilc, 0)')	#test
 	
 @jit("void(f4[:, :])")
 def getSigNumFeat(data):
     cols=data.shape[1]
     ix_list=np.empty((1,cols), dtype=int)
     count=0
-    c=data.columns
     for i in range(cols-1):
-	    p_value=mw_test(data, i)
+        p_value=mw_test(data, i)
         if p_value<.05:
             ix_list[0, count] = i
             count+=1
     return ix_list[0,0:count]
 
-trainWilcT_ix=getSigNumFeat(trainWilc)
+test=getSigNumFeat(trainWilc.ix[:,range(50, 100)+[1059]])
+trainWilcTest=trainWilc.ix[:, [0,1,1057]]
+cProfile.run('getSigNumFeat(trainWilcTest)')
+getSigNumFeat(trainWilcTest)
 
+trainWilcT_ix=getSigNumFeat(trainWilc)
 # Matrix of categorical variables with 25 or fewer categories
 train.drop(labels='target', axis=1, inplace=True)
 pvals = []
