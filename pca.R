@@ -1,5 +1,5 @@
-library(dplyr)
-library(ggplot2)
+install.packages("/home/rgaddip1/dm/data.table_1.10.0.tar.gz", repos=NULL, type="source")
+install.packages("/home/rgaddip1/dm/PCAmixdata_2.2.tar.gz", repos=NULL, type="source")
 library(data.table)
 library(PCAmixdata)
 
@@ -10,3 +10,5 @@ scat <- lapply(scat, as.factor)
 scat <- as.data.frame(scat)
 
 pca <- PCAmix(snumer, scat, rename.level=TRUE)
+
+save(pca, file='pca.results')
