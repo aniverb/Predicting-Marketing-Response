@@ -1,31 +1,15 @@
-import numpy as np
 import pandas as pd
-from numba import *
-from scipy.stats import chi2_contingency
-from scipy.stats import mannwhitneyu
 pd.set_option('display.max_columns', None)
+import numpy as np
+from numba import *
+from scipy.stats import *
 import cProfile
 
 #Read cleaned data, remove ID column and target column
 train = pd.read_csv('C:\\Users\\aniverb\\Documents\\Grad_School\\JHU\\436 - Data Mining\\Project\\Springleaf data\\clean\\train_a_cleaned.csv')
-'''DtypeWarning: Columns (9,10,11,12,13,44,182,202,205,206,208,212,215) have mixed types. Specify dtype option on import or set low_memory=False.
-  data = self._reader.read(nrows)'''
 
-train.shape #(72615, 1910)
-rows=train.shape[0]
-
-for i in [9,10,11,12,13,44,182,202,205,206,208,212,215]:
-    categ = train.ix[:,i].value_counts()
-    print {"Feature index": i, "% Not Empty": round(sum(categ) / float(rows), 5), "Category Counts": categ}
-
-exclude = train[[9, 10, 11, 12, 13, 44, 182, 202, 205, 206, 208, 212, 215]].columns.values  # temporarily remove b/c of mixed type
-
-for i in exclude:
-    del train[i]
-
-train.shape #(72615, 1897)
-
-train = train.drop(train.columns[[0, 1]], axis=1)
+print train.shape #(72615, 1805)
+train = train.drop(train.columns[[0]], axis=1)
 
 @jit("void(f4[:, :])")
 def getCat(data):
@@ -44,15 +28,15 @@ cat_cols_ix=cat_cols_ix.tolist() #indicies
 
 target = train.iloc[:,train.shape[1]-1] #Create separate "target" vector
 #catcols = train.ix[:, train.apply(lambda x: x.nunique()) <= 25] #too slow
-catcols = train[cat_cols_ix]
-catcols.shape #(72615, 787)
+catcols = train[cat_cols_ix] # Matrix of categorical variables with 25 or fewer categories
+print catcols.shape #(72615, 764)
 
 catcolsNames=catcols.columns.values
 trainNames=train.columns.values
 trainWilc=train
 nonCate=[i for i in trainNames if i not in catcolsNames]
 trainWilc=trainWilc[nonCate]
-trainWilc.shape #(72615, 1108)
+print trainWilc.shape #(72615, 1040)
 
 @jit("void(f4[:, :])")
 def getNum(data):
@@ -61,7 +45,7 @@ def getNum(data):
     count=0
     c=data.columns
     for i in range(cols):
-        if ((data[c[i]].dtype) == np.int64) | ((data[c[i]].dtype)  == np.float64) & ('' not in list(data[c[i]])) & ((data[c[i]].nunique())>1):
+        if ((data[c[i]].dtype) == np.int64) | ((data[c[i]].dtype)  == np.float64):
             cat_list[0,count]=i
             count+=1
     return cat_list[0,0:count]
@@ -69,22 +53,21 @@ def getNum(data):
 trainWilc_ix=getNum(trainWilc)
 trainWilc_ix=trainWilc_ix.tolist()
 trainWilc=trainWilc[trainWilc_ix]
-trainWilc.shape #(72615, 1060)
+print trainWilc.shape #(72615, 1040)
 
-
-@jit 
+#wilcoxon test
+@jit
 def mw_test(data, i):
-    group1 = data.target == 0
-    group1 = (data.ix[group1]).ix[:, i]
-    group2 = data.target == 1
-    group2 = (data.ix[group2]).ix[:, i]
+    group1 = data[:,-1] == 0
+    group1 = data[group1, i]
+    group2 = data[:,-1] == 1
+    group2 = data[group2, i]
     p_value = mannwhitneyu(group1, group2)[1]
     return p_value
 
-cProfile.run('mw_test(trainWilc, 0)')	#test
-	
 @jit("void(f4[:, :])")
 def getSigNumFeat(data):
+    data=np.array(data)
     cols=data.shape[1]
     ix_list=np.empty((1,cols), dtype=int)
     count=0
@@ -95,24 +78,31 @@ def getSigNumFeat(data):
             count+=1
     return ix_list[0,0:count]
 
-test=getSigNumFeat(trainWilc.ix[:,range(50, 100)+[1059]])
-trainWilcTest=trainWilc.ix[:, [0,1,1057]]
-cProfile.run('getSigNumFeat(trainWilcTest)')
-getSigNumFeat(trainWilcTest)
+#cProfile.run('getSigNumFeat(trainWilc.ix[:, [0,1039]])')
+#0.02 seconds
 
-trainWilcT_ix=getSigNumFeat(trainWilc)
-# Matrix of categorical variables with 25 or fewer categories
-train.drop(labels='target', axis=1, inplace=True)
+numSigCol_ix=getSigNumFeat(trainWilc)
+len(numSigCol_ix) #997 (out of 1040)
+numSigCol_ix=numSigCol_ix.tolist()
+numSigCol=trainWilc.columns[numSigCol_ix]
+numSigCol=pd.DataFrame(columns=numSigCol)
+numSigCol.to_csv("sig_numer_col.csv", index=False, header=True)
+
+# Doing chi-squared test
 pvals = []
-
 # Crosstab between column category values and target values; calculate p-val
-# using chi-square test
 for i in range(catcols.shape[1]):
     obs = pd.crosstab(index=catcols.iloc[:, i], columns=target)
     pvals.append((catcols.columns[i], chi2_contingency(obs)[1]))
 
+#cProfile.run('pd.crosstab(index=catcols.iloc[:, 0], columns=target)')
+#chi_test=pd.crosstab(index=catcols.iloc[:, 0], columns=target)
+#cProfile.run('chi2_contingency(chi_test)[1]')
+#.028 sec
+
 # All p-values
 pvals = pd.DataFrame(pvals, columns=['Feature', 'p-value'])
-
-print pvals.loc[pvals.iloc[:, 1] < 0.05]
-
+catSigCol=pvals.loc[pvals.iloc[:, 1] < 0.05]
+print len(catSigCol) #677 (out of 764)
+catSigCol=pd.DataFrame(columns=catSigCol['Feature'])
+catSigCol.to_csv("sig_cat_col.csv", index=False, header=True)
