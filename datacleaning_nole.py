@@ -22,7 +22,7 @@ def open_data(filename):
             elif np.issubdtype(df[col].dtype, np.number):
                 # Fill NA's with median for all numeric types
                 df[col].fillna(df[col].median(), inplace=True)
-            elif df[col].dtype == str:
+            elif df[col].dtype == object:
                 df[col].fillna(max(set(list(df[col])), key=list(df[col]).count), inplace=True)
                 if len(df[col].value_counts(sort=False)) > 25:
                     df.drop(col, 1, inplace=True)
