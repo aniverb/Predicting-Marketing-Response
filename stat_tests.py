@@ -6,7 +6,7 @@ from scipy.stats import *
 import cProfile
 
 #Read cleaned data, remove ID column and target column
-train = pd.read_csv('C:\\Users\\aniverb\\Documents\\Grad_School\\JHU\\436 - Data Mining\\Project\\Springleaf data\\clean\\train_a_cleaned.csv')
+train = pd.read_csv('C:\\Users\\aniverb\\Documents\\Grad_School\\JHU\\436 - Data Mining\\Project\\Springleaf data\\clean\\train_a_no_dup.csv')
 
 print train.shape #(72615, 1805)
 train = train.drop(train.columns[[0]], axis=1)
@@ -18,7 +18,7 @@ def getCat(data):
     count=0
     c=data.columns
     for i in range(cols):
-        if ((data[c[i]].nunique())<=25) & ((data[c[i]].nunique())>1):
+        if ((data[c[i]].nunique())<=25):
             cat_list[0,count]=i
             count+=1
     return cat_list[0,0:count-1] #b/c target is last col
@@ -29,14 +29,14 @@ cat_cols_ix=cat_cols_ix.tolist() #indicies
 target = train.iloc[:,train.shape[1]-1] #Create separate "target" vector
 #catcols = train.ix[:, train.apply(lambda x: x.nunique()) <= 25] #too slow
 catcols = train[cat_cols_ix] # Matrix of categorical variables with 25 or fewer categories
-print catcols.shape #(72615, 764)
+print catcols.shape #(72615, 770)
 
 catcolsNames=catcols.columns.values
 trainNames=train.columns.values
 trainWilc=train
 nonCate=[i for i in trainNames if i not in catcolsNames]
 trainWilc=trainWilc[nonCate]
-print trainWilc.shape #(72615, 1040)
+print trainWilc.shape #(72615, 1035)
 
 @jit("void(f4[:, :])")
 def getNum(data):
@@ -53,7 +53,7 @@ def getNum(data):
 trainWilc_ix=getNum(trainWilc)
 trainWilc_ix=trainWilc_ix.tolist()
 trainWilc=trainWilc[trainWilc_ix]
-print trainWilc.shape #(72615, 1040)
+print trainWilc.shape #(72615, 1035)
 
 #wilcoxon test
 @jit
@@ -82,7 +82,7 @@ def getSigNumFeat(data):
 #0.02 seconds
 
 numSigCol_ix=getSigNumFeat(trainWilc)
-len(numSigCol_ix) #997 (out of 1040)
+print len(numSigCol_ix) #992 (out of 1034)
 numSigCol_ix=numSigCol_ix.tolist()
 numSigCol=trainWilc.columns[numSigCol_ix]
 numSigCol=pd.DataFrame(columns=numSigCol)
@@ -103,6 +103,6 @@ for i in range(catcols.shape[1]):
 # All p-values
 pvals = pd.DataFrame(pvals, columns=['Feature', 'p-value'])
 catSigCol=pvals.loc[pvals.iloc[:, 1] < 0.05]
-print len(catSigCol) #677 (out of 764)
+print len(catSigCol) #685 (out of 770)
 catSigCol=pd.DataFrame(columns=catSigCol['Feature'])
 catSigCol.to_csv("sig_cat_col.csv", index=False, header=True)
