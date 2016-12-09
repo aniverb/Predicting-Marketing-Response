@@ -39,6 +39,16 @@ def open_data(filename):
         keep.append(df)
         df = pd.concat(keep, axis=1)
 
+        dup = []
+        for i,lab in enumerate(df):
+            a = list(df[lab].data)
+            for blab in df.columns[:i]:
+                if a == list(df[blab].data):
+                    dup.append(lab)
+
+        print dup
+        df.drop(dup, 1, inplace=True)
+
 
         return df, drop
 
