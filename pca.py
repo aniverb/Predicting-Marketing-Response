@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 df = pd.read_csv(sys.argv[1], header=0)
 df_norm = (df - df.mean()) / (df.max() - df.min())
 pca = PCA(svd_solver='full')
-pca.fit(df_norm.T)
+pca.fit(df_norm)
 #joblib.dump(pca, sys.argv[1] + '.pca')
 
 # To load mdel
