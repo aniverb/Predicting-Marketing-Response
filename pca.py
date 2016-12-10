@@ -6,10 +6,15 @@ from sklearn.externals import joblib
 import matplotlib
 import matplotlib.pyplot as plt
 
-df = pd.read_csv(sys.argv[1], header=0, index_col=False)
-pca = PCA(whiten=True)
-pca.fit(df)
+
+df = pd.read_csv(sys.argv[1], header=0)
+pca = PCA(svd_solver='full')
+pca.fit_transform(df.T)
+df.to_csv('tmp', index=False)
+print df.T.shape
 joblib.dump(pca, sys.argv[1] + '.pca')
+
+
 
 # To load model
 pca = joblib.load(sys.argv[1] + '.pca')
