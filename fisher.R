@@ -30,5 +30,5 @@ sprintf("Number of significant features: %d out of %d", num_sig, ncol(catcols))
 #sprintf("Number of features containing group with freq < 5: %d out of %d", l_five, ncol(catcols))
 #sprintf("Number of features with two groups (2x2 tables): %d out of %d", twobytwo, ncol(catcols))
 
-sig_pvals = matrix(sig_pvals[1,], nrow = 1, ncol = length(sig_pvals))
+sig_pvals = matrix(sig_pvals[1,], nrow = 1, ncol = ncol(sig_pvals))
 write.table(sig_pvals, "sig_cat_col_bonf.csv", row.names = F, col.names = F, sep = ",")
