@@ -73,7 +73,7 @@ def getSigNumFeat(data):
     count=0
     for i in range(cols-1):
         p_value=mw_test(data, i)
-        if p_value<.05:
+        if p_value<.05/cols:
             ix_list[0, count] = i
             count+=1
     return ix_list[0,0:count]
@@ -89,11 +89,11 @@ numSigCol=pd.DataFrame(columns=numSigCol)
 numSigCol.to_csv("sig_numer_col.csv", index=False, header=True)
 
 # Doing chi-squared test
-pvals = []
+#pvals = []
 # Crosstab between column category values and target values; calculate p-val
-for i in range(catcols.shape[1]):
-    obs = pd.crosstab(index=catcols.iloc[:, i], columns=target)
-    pvals.append((catcols.columns[i], chi2_contingency(obs)[1]))
+#for i in range(catcols.shape[1]):
+#    obs = pd.crosstab(index=catcols.iloc[:, i], columns=target)
+#    pvals.append((catcols.columns[i], chi2_contingency(obs)[1]))
 
 #cProfile.run('pd.crosstab(index=catcols.iloc[:, 0], columns=target)')
 #chi_test=pd.crosstab(index=catcols.iloc[:, 0], columns=target)
@@ -101,8 +101,8 @@ for i in range(catcols.shape[1]):
 #.028 sec
 
 # All p-values
-pvals = pd.DataFrame(pvals, columns=['Feature', 'p-value'])
-catSigCol=pvals.loc[pvals.iloc[:, 1] < 0.05]
-print len(catSigCol) #685 (out of 770)
-catSigCol=pd.DataFrame(columns=catSigCol['Feature'])
-catSigCol.to_csv("sig_cat_col.csv", index=False, header=True)
+#pvals = pd.DataFrame(pvals, columns=['Feature', 'p-value'])
+#catSigCol=pvals.loc[pvals.iloc[:, 1] < 0.05]
+#print len(catSigCol) #685 (out of 770)
+#catSigCol=pd.DataFrame(columns=catSigCol['Feature'])
+#catSigCol.to_csv("sig_cat_col.csv", index=False, header=True)
