@@ -1,3 +1,4 @@
+#this code was not used due to inability to rigorously determine what number of dimensions should be kept
 library(compiler)
 compilePKGS(TRUE)
 setCompilerOptions(suppressAll = TRUE, optimize = 3)
