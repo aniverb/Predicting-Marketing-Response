@@ -73,7 +73,7 @@ def getSigNumFeat(data):
     count=0
     for i in range(cols-1):
         p_value=mw_test(data, i)
-        if p_value<.05/cols:
+        if p_value<.05/(cols-1):
             ix_list[0, count] = i
             count+=1
     return ix_list[0,0:count]
