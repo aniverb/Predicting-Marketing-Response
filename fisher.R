@@ -22,11 +22,13 @@ for (i in 1:ncol(catcols)){
 }
 
 pvals = rbind(colnames(catcols),pvals)
-sig_pvals = pvals[,which(pvals[2,]<0.05)]
+newa = 0.05/ncol(pvals)
+sig_pvals = pvals[,which(as.numeric(pvals[2,])<newa)]
 num_sig = ncol(sig_pvals)
 
 sprintf("Number of significant features: %d out of %d", num_sig, ncol(catcols))
 #sprintf("Number of features containing group with freq < 5: %d out of %d", l_five, ncol(catcols))
 #sprintf("Number of features with two groups (2x2 tables): %d out of %d", twobytwo, ncol(catcols))
 
-write.csv(sig_pvals[1,], "catSigColFisher.csv")
+sig_pvals = matrix(sig_pvals[1,], nrow = 1, ncol = length(sig_pvals))
+write.table(sig_pvals, "sig_cat_col_bonf.csv", row.names = F, col.names = F, sep = ",")
