@@ -15,5 +15,9 @@ pca.fit(df_norm)
 
 # To load mdel
 #pca = joblib.load(sys.argv[1] + '.pca')
-plt.plot(pca.explained_variance_[:50])
+plt.plot(pca.explained_variance_ratio_[:30])
+plt.xlabel('Principal Component')
+plt.ylabel('Ratio of Explained Variance')
+plt.title('PCA of Numerical Data')
+plt.savefig(sys.argv[1] + '_pca.png', bbox_inches='tight')
 plt.show()
