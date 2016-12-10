@@ -1,3 +1,7 @@
+library(compiler)
+compilePKGS(TRUE)
+setCompilerOptions(suppressAll = TRUE, optimize = 3)
+enableJIT(3)
 install.packages("/home/rgaddip1/dm/data.table_1.10.0.tar.gz", repos=NULL, type="source")
 install.packages("/home/rgaddip1/dm/PCAmixdata_2.2.tar.gz", repos=NULL, type="source")
 library(data.table)
