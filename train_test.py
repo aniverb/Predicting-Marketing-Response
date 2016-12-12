@@ -19,7 +19,7 @@ def main():
     test = test.ix[:,2:len(col_names)]
     test = pd.get_dummies(test, columns = cat_cols)
     LRpred = LR.predict(test)
-    fpr, tpr, _ = roc_curve(target_test, LRpred)
+    fpr, tpr, _ = roc_curve(target_test, LRfit.decision_function(test))
     plt.plot(fpr, tpr)
     plt.show()
 main()
