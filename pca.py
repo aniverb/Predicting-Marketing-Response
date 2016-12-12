@@ -7,17 +7,15 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 
-df = pd.read_csv(sys.argv[1], header=0)
+df = pd.read_csv(sys.argv[1], header=0, index_col=False)
 df_norm = (df - df.mean()) / (df.max() - df.min())
 pca = PCA(svd_solver='full')
-pca.fit(df_norm)
-#joblib.dump(pca, sys.argv[1] + '.pca')
+df_norm = pca.fit(df_norm)
 
-# To load mdel
-#pca = joblib.load(sys.argv[1] + '.pca')
-plt.plot(pca.explained_variance_ratio_[:30])
+SCALE = 500
+plt.axis([0,500,0,1.2])
+plt.plot(np.cumsum(pca.explained_variance_ratio_[:SCALE]))
 plt.xlabel('Principal Component')
-plt.ylabel('Ratio of Explained Variance')
-plt.title('PCA of Numerical Data')
-plt.savefig(sys.argv[1] + '_pca.png', bbox_inches='tight')
-plt.show()
+plt.ylabel('Explained Variance')
+plt.title('PCA of Numerical Data (First ' + str(SCALE) + '/' + str(len(pca.explained_variance_ratio_)) + ')')
+plt.savefig(sys.argv[1] + '_pca_zoom.png', bbox_inches='tight')

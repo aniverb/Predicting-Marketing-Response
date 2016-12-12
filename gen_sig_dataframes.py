@@ -7,23 +7,28 @@ def get_sig(filename, cat_file, numer_file):
     signumer = set()
 
     with open(cat_file, 'r') as f:
-        sigcat = set(''.join(f.readlines()).strip().split(','))
+        t = f.readlines()
+        t = [x.strip().replace('"', '') for x in t]
+        sigcat = ','.join(t).strip().split(',')
+        print len(sigcat)
     with open(numer_file, 'r') as f:
-        signumer = set(''.join(f.readlines()).strip().split(','))
+        t = f.readlines()
+        t = [x.strip() for x in t]
+        signumer = ','.join(t).strip().split(',')
+        print len(signumer)
 
-    with open(filename, 'r') as f:
-        df = pd.read_csv(filename, header=0, index_col=False)
+    df = pd.read_csv(filename, header=0, index_col=False)
 
-        catdf = []
-        numerdf = []
-        for col in df:
-            if col in sigcat:
-                catdf.append(df[col])
-            elif col in signumer:
-                numerdf.append(df[col])
+    catdf = []
+    numerdf = []
+    for col in df:
+        if col in sigcat:
+            catdf.append(df[col])
+        elif col in signumer:
+            numerdf.append(df[col])
 
 
-        return pd.concat([df['ID'], df['target']], axis=1), pd.concat(catdf, axis=1), pd.concat(numerdf, axis=1)
+    return pd.concat([df['ID'], df['target']], axis=1), pd.concat(catdf, axis=1), pd.concat(numerdf, axis=1)
 
 
     
