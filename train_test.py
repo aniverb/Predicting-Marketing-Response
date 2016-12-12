@@ -14,7 +14,7 @@ def main():
     cat_cols = col_names[-26:]
     train = train.ix[:,2:len(col_names)]
     train = pd.get_dummies(train, columns = cat_cols)
-    LR = LogisticRegression()
+    LR = LogisticRegression(warm_start = True, solver = 'sag', penalty = 'l2', C = 0.211)
     LRfit = LR.fit(train, target_train)
     test = test.ix[:,2:len(col_names)]
     test = pd.get_dummies(test, columns = cat_cols)
