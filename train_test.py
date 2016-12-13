@@ -19,6 +19,11 @@ def main():
     test = test.ix[:,2:len(col_names)]
     test = pd.get_dummies(test, columns = cat_cols)
     LRpred = LR.predict(test)
+    correct = 0
+    for k in range(len(LRpred)):
+        if LRpred[k] == target_test[k]:
+            correct = correct + 1
+    print str(correct / float(len(LRpred))) # Accuracy on testing set
     fpr, tpr, _ = roc_curve(target_test, LRfit.decision_function(test))
     plt.plot(fpr, tpr)
     plt.xlabel('False Positive Rate')
