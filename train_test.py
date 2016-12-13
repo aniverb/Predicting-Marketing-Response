@@ -23,6 +23,6 @@ def main():
     plt.plot(fpr, tpr)
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
-    plt.title('Area Under ROC Curve')
+    plt.title('Logistic Regression ROC Curve')
     plt.show()
 main()

@@ -1,4 +1,5 @@
 require(FactoMineR)
+require(ggplot2)
 
 train <- read.csv('~/Downloads/train_split/train_a_no_dup.csv')
 sig_cat = read.csv('~/Downloads/sig_cat_col_bonf.csv')
